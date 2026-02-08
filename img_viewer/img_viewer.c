@@ -60,18 +60,21 @@ void print_only_char(FILE* p_file){
     int n = 0;
     int c;
     int in_group = 0;
+    int group_count = 1;
 
     while((c = getc(p_file)) != EOF) {
         if (isalpha(c)) {
             if (in_group) {
-                printf(" ");           
+                printf(" ");
+                group_count++;
             }
-            printf("%c:%d", c, n);      
+            printf("GC : %d", group_count);
             in_group = 1;
         } else {
             if (in_group) {
                 printf("\n");        
                 in_group = 0;
+                group_count = 1;
             }
         }
         n++;
