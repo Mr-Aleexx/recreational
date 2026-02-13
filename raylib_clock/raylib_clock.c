@@ -68,8 +68,8 @@ void draw_hour_hand(Vector2 center, int clock_radius, int hour) {
     y_in = center.y;
     Vector2 in = {x_in, y_in};
 
-    x_out = center.x +  clock_radius * 0.98 * cosf(hour*60 * DEG_TO_RAD);
-    y_out = center.y +  clock_radius * 0.98 * sinf(hour*60 * DEG_TO_RAD);
+    x_out = center.x +  clock_radius * 0.98 * cosf(300 * DEG_TO_RAD);
+    y_out = center.y +  clock_radius * 0.98 * sinf(300 * DEG_TO_RAD);
     Vector2 out = {x_out, y_out};
 
     DrawLineEx(in, out, LINE_THICNESS, createColor(0, 0, 0, 255));
@@ -113,12 +113,15 @@ int main(void)
     // Remove log messages, tracelog code 7 = none
     SetTraceLogLevel(7);
 
+
     Color background = createColor(0, 0, 0, 255);
     Color clock_color = createColor(255, 255 ,255 , 255);
 
     time_t current_time = time(NULL);
     char* current_time_str = ctime(&current_time);
     struct tm *tm_struct = localtime(&current_time);
+    size_t size_tm = sizeof(*tm_struct);
+    printf("size of tm : %zu\n", size_tm);
     int hour = tm_struct->tm_hour;
     int minute = tm_struct->tm_min;
     int seconds = tm_struct->tm_sec;
@@ -133,6 +136,7 @@ int main(void)
             ClearBackground(background);
             DrawCircle(CLOCK_CENTER.x , CLOCK_CENTER.y, CLOCK_RADIUS , clock_color);
             DrawText(TextFormat("Current time : %s\n ", current_time_str ), 10, 10, 20, LIGHTGRAY);
+            
             draw_minute_markers(CLOCK_CENTER ,CLOCK_RADIUS);
             draw_hour_hand(CLOCK_CENTER, HOUR_HAND_LENGTH, hour);
             draw_minute_hand(CLOCK_CENTER, MINUTE_HAND_LENGTH, minute);
