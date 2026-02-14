@@ -56,7 +56,7 @@ void draw_minute_markers(Vector2 center, float clock_radius) {
 }
 
 void draw_hour_hand(struct tm *tm) {
-    float alpha = ((float) (tm->tm_hour % 12)) * 30;
+    float alpha = (((float) (tm->tm_hour % 12)) * 30) - 90.0;
 
     float x_out, y_out;
     x_out = CLOCK_CENTER.x + HOUR_HAND_LENGTH * cosf(alpha * DEG_TO_RAD);
@@ -68,26 +68,27 @@ void draw_hour_hand(struct tm *tm) {
 
 void draw_minute_hand(struct tm *tm) {
 
-    float alpha = ((float) (tm->tm_min) * 6);
+    float alpha = (((float) (tm->tm_min) * 6)) / tm->tm_sec - 90.0;
+
 
     float x_out, y_out;
-    x_out = CLOCK_CENTER.x + HOUR_HAND_LENGTH * cosf(alpha * DEG_TO_RAD);
-    y_out = CLOCK_CENTER.y + HOUR_HAND_LENGTH * sinf(alpha * DEG_TO_RAD);
+    x_out = CLOCK_CENTER.x + MINUTE_HAND_LENGTH * cosf(alpha * DEG_TO_RAD);
+    y_out = CLOCK_CENTER.y + MINUTE_HAND_LENGTH * sinf(alpha * DEG_TO_RAD);
     Vector2 out = {x_out, y_out};
+
 
     DrawLineEx(CLOCK_CENTER, out, LINE_THICNESS, createColor(0, 0, 255, 255));
 }
 
 void draw_seconds_hand(struct tm *tm) {
 
-    float alpha = ((float) (tm->tm_sec)) * 6;
+    float alpha = (((float) (tm->tm_sec)) * 6) - 90.0;
     float x_out, y_out;
 
-    x_out = CLOCK_CENTER.x + HOUR_HAND_LENGTH * cosf(alpha * DEG_TO_RAD);
-    y_out = CLOCK_CENTER.y + HOUR_HAND_LENGTH * sinf(alpha * DEG_TO_RAD);
+    x_out = CLOCK_CENTER.x + SECONDS_HAND_LENGTH * cosf(alpha * DEG_TO_RAD);
+    y_out = CLOCK_CENTER.y + SECONDS_HAND_LENGTH * sinf(alpha * DEG_TO_RAD);
     Vector2 out = {x_out, y_out};
 
-    printf("alpha : %f\n",alpha);
     DrawLineEx(CLOCK_CENTER, out, LINE_THICNESS, createColor(255, 0, 0, 255));}
 
 
