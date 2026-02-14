@@ -5,15 +5,15 @@
 
 #define WIDTH  900
 #define HEIGHT 600
-#define DEG_TO_RAD (PI / 180.0)
+#define DEG_TO_RAD (M_PI / 180.0)
 #define LINE_THICNESS 5
 
 const int CLOCK_RADIUS = HEIGHT * 0.45;
 const Vector2 CLOCK_CENTER = {(float) WIDTH / 2, (float) HEIGHT / 2};
 
-const int HOUR_HAND_LENGTH    = 0.5 * CLOCK_RADIUS;
-const int MINUTE_HAND_LENGTH  = 0.6 * CLOCK_RADIUS;
-const int SECONDS_HAND_LENGTH = 0.8 * CLOCK_RADIUS;
+const float HOUR_HAND_LENGTH    = 0.5 * CLOCK_RADIUS;
+const float MINUTE_HAND_LENGTH  = 0.6 * CLOCK_RADIUS;
+const float SECONDS_HAND_LENGTH = 0.8 * CLOCK_RADIUS;
 
 
 int clamp(int v) {
@@ -38,14 +38,10 @@ void draw_minute_markers(Vector2 center, float clock_radius) {
     for (int i = 0 ; i < 60 ; i++) {
         float x_in;
         float y_in;
-        if (i % 5 == 0) {
-            x_in = center.x +  clock_radius * 0.85 * cosf(alpha * DEG_TO_RAD);
-            y_in = center.y +  clock_radius * 0.85 * sinf(alpha * DEG_TO_RAD);
-        }
-        else {
-            x_in = center.x +  clock_radius * 0.9 * cosf(alpha * DEG_TO_RAD);
-            y_in = center.y +  clock_radius * 0.9 * sinf(alpha * DEG_TO_RAD);
-        }
+        float percentage_mult = (i % 5 == 0) ? 0.85 : 0.9;
+
+        x_in = center.x +  clock_radius * percentage_mult * cosf(alpha * DEG_TO_RAD);
+        y_in = center.y +  clock_radius * percentage_mult * sinf(alpha * DEG_TO_RAD);
 
         Vector2 in = {x_in, y_in};
 
@@ -59,53 +55,40 @@ void draw_minute_markers(Vector2 center, float clock_radius) {
 
 }
 
-void draw_hour_hand(Vector2 center, int clock_radius, int hour) {
+void draw_hour_hand(struct tm *tm) {
+    float alpha = ((float) (tm->tm_hour % 12)) * 30;
 
-    float x_in, y_in;
     float x_out, y_out;
-
-    x_in = center.x;
-    y_in = center.y;
-    Vector2 in = {x_in, y_in};
-
-    x_out = center.x +  clock_radius * 0.98 * cosf(300 * DEG_TO_RAD);
-    y_out = center.y +  clock_radius * 0.98 * sinf(300 * DEG_TO_RAD);
+    x_out = CLOCK_CENTER.x + HOUR_HAND_LENGTH * cosf(alpha * DEG_TO_RAD);
+    y_out = CLOCK_CENTER.y + HOUR_HAND_LENGTH * sinf(alpha * DEG_TO_RAD);
     Vector2 out = {x_out, y_out};
 
-    DrawLineEx(in, out, LINE_THICNESS, createColor(0, 0, 0, 255));
+    DrawLineEx(CLOCK_CENTER, out, LINE_THICNESS, createColor(0, 0, 0, 255));
 }
 
-void draw_minute_hand(Vector2 center, int clock_radius, int minute) {
+void draw_minute_hand(struct tm *tm) {
 
-    float x_in, y_in;
+    float alpha = ((float) (tm->tm_min) * 6);
+
     float x_out, y_out;
-
-    x_in = center.x;
-    y_in = center.y;
-    Vector2 in = {x_in, y_in};
-
-    x_out = center.x +  clock_radius * 0.98 * cosf(minute*60 * DEG_TO_RAD);
-    y_out = center.y +  clock_radius * 0.98 * sinf(minute*60 * DEG_TO_RAD);
+    x_out = CLOCK_CENTER.x + HOUR_HAND_LENGTH * cosf(alpha * DEG_TO_RAD);
+    y_out = CLOCK_CENTER.y + HOUR_HAND_LENGTH * sinf(alpha * DEG_TO_RAD);
     Vector2 out = {x_out, y_out};
 
-    DrawLineEx(in, out, LINE_THICNESS, createColor(255, 0, 0, 255));
+    DrawLineEx(CLOCK_CENTER, out, LINE_THICNESS, createColor(0, 0, 255, 255));
 }
 
-void draw_seconds_hand(Vector2 center, int clock_radius, int seconds) {
+void draw_seconds_hand(struct tm *tm) {
 
-    float x_in, y_in;
+    float alpha = ((float) (tm->tm_sec)) * 6;
     float x_out, y_out;
 
-    x_in = center.x;
-    y_in = center.y;
-    Vector2 in = {x_in, y_in};
-
-    x_out = center.x +  clock_radius * 0.98 * cosf(seconds*60 * DEG_TO_RAD);
-    y_out = center.y +  clock_radius * 0.98 * sinf(seconds*60 * DEG_TO_RAD);
+    x_out = CLOCK_CENTER.x + HOUR_HAND_LENGTH * cosf(alpha * DEG_TO_RAD);
+    y_out = CLOCK_CENTER.y + HOUR_HAND_LENGTH * sinf(alpha * DEG_TO_RAD);
     Vector2 out = {x_out, y_out};
 
-    DrawLineEx(in, out, LINE_THICNESS, createColor(255, 0, 0, 255));
-}
+    printf("alpha : %f\n",alpha);
+    DrawLineEx(CLOCK_CENTER, out, LINE_THICNESS, createColor(255, 0, 0, 255));}
 
 
 int main(void)
@@ -126,21 +109,23 @@ int main(void)
     int minute = tm_struct->tm_min;
     int seconds = tm_struct->tm_sec;
 
-    printf("Hour : %d\n minute : %d\n seconds : %d\n",hour, minute, seconds);
+    printf("Hour : %d\nminute : %d\nseconds : %d\n",hour, minute, seconds);
 
     InitWindow(WIDTH, HEIGHT, "RayLib Basic clock");
 
     while (!WindowShouldClose())
     {
+        current_time = time(NULL);
+        current_time_str = ctime(&current_time);
+        tm_struct = localtime(&current_time); 
         BeginDrawing();
             ClearBackground(background);
             DrawCircle(CLOCK_CENTER.x , CLOCK_CENTER.y, CLOCK_RADIUS , clock_color);
             DrawText(TextFormat("Current time : %s\n ", current_time_str ), 10, 10, 20, LIGHTGRAY);
-            
             draw_minute_markers(CLOCK_CENTER ,CLOCK_RADIUS);
-            draw_hour_hand(CLOCK_CENTER, HOUR_HAND_LENGTH, hour);
-            draw_minute_hand(CLOCK_CENTER, MINUTE_HAND_LENGTH, minute);
-            draw_seconds_hand(CLOCK_CENTER, SECONDS_HAND_LENGTH, seconds);
+            draw_hour_hand(tm_struct);
+            draw_minute_hand(tm_struct);
+            draw_seconds_hand(tm_struct);
         EndDrawing();
     }
 
