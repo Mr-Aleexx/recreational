@@ -47,13 +47,15 @@ void draw_minute_markers() {
         Vector2 in = {x_in, y_in};
 
         float x_out = CLOCK_CENTER.x + CLOCK_RADIUS * 0.98 * cosf(alpha * DEG_TO_RAD);
-        float y_out = CLOCK_CENTER.y +  CLOCK_RADIUS * 0.98 * sinf(alpha * DEG_TO_RAD);
+        float y_out = CLOCK_CENTER.y + CLOCK_RADIUS * 0.98 * sinf(alpha * DEG_TO_RAD);
         Vector2 out = {x_out, y_out};
         alpha += 360.0 / 60.0;
         DrawLineEx(in, out, LINE_THICNESS, createColor(0, 0, 0, 255));
     }
 }
 
+
+// TODO : fix the position offset
 void draw_hour_numbers() {
     float alpha = -90.0 + (360.0/12.0);
     float x, y;
@@ -137,7 +139,7 @@ int main(void)
     int minute = tm_struct->tm_min;
     int seconds = tm_struct->tm_sec;
 
-    printf("Hour : %d\nminute : %d\nseconds : %d\n",hour, minute, seconds);
+    //printf("Hour : %d\nminute : %d\nseconds : %d\n",hour, minute, seconds);
 
     InitWindow(WIDTH, HEIGHT, "RayLib Basic clock");
 
@@ -150,10 +152,13 @@ int main(void)
             ClearBackground(background);
             DrawCircle(CLOCK_CENTER.x , CLOCK_CENTER.y, CLOCK_RADIUS , clock_color);
             DrawText(TextFormat("Current time : %s\n ", current_time_str ), 10, 10, 20, LIGHTGRAY);
+
             draw_minute_markers();
+
             draw_hour_hand(tm_struct);
             draw_minute_hand(tm_struct);
             draw_seconds_hand(tm_struct);
+
             draw_hour_numbers();
         EndDrawing();
     }
