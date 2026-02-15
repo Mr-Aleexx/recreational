@@ -6,7 +6,7 @@
 #define WIDTH  900
 #define HEIGHT 600
 #define DEG_TO_RAD (M_PI / 180.0)
-#define LINE_THICNESS 5 
+#define LINE_THICNESS 5
 
 const int CLOCK_RADIUS = HEIGHT * 0.45;
 
@@ -43,6 +43,7 @@ void draw_minute_markers() {
         float x_in;
         float y_in;
         float percentage_mult = (i % 5 == 0) ? 0.85 : 0.9;
+        float line_thiccness  = (i % 5 != 0) ? 2    : LINE_THICNESS;
 
         x_in = CLOCK_CENTER.x + CLOCK_RADIUS * percentage_mult * cosf(alpha * DEG_TO_RAD);
         y_in = CLOCK_CENTER.y +  CLOCK_RADIUS * percentage_mult * sinf(alpha * DEG_TO_RAD);
@@ -53,7 +54,7 @@ void draw_minute_markers() {
         float y_out = CLOCK_CENTER.y + CLOCK_RADIUS * 0.98 * sinf(alpha * DEG_TO_RAD);
         Vector2 out = {x_out, y_out};
         alpha += MINSEC_AP;
-        DrawLineEx(in, out, LINE_THICNESS, create_color(0, 0, 0, 255));
+        DrawLineEx(in, out, line_thiccness, create_color(0, 0, 0, 255));
     }
 }
 
@@ -61,7 +62,7 @@ void draw_minute_markers() {
 void draw_hour_numbers() {
 
     int   position_correction = 3;
-    float alpha = -90.0 + HOUR_AP;;
+    float alpha = -90.0 + HOUR_AP;
     float x, y;
 
     for (int i = 0 ; i < 12 ; i++) {
@@ -76,12 +77,9 @@ void draw_hour_numbers() {
 
 void draw_hour_hand(struct tm *tm) {
 
-    // hour angle progression
-    float hour_ap = 360.0/12.0;
-
     float minutes_progression = ((float)tm->tm_min) / 60.0;
-    float alpha = (((float) (tm->tm_hour % 12)) * hour_ap) - 90.0;
-    alpha += hour_ap*minutes_progression;
+    float alpha = (((float) (tm->tm_hour % 12)) * HOUR_AP) - 90.0;
+    alpha += HOUR_AP*minutes_progression;
 
     float x_out, y_out;
     x_out = CLOCK_CENTER.x + HOUR_HAND_LENGTH * cosf(alpha * DEG_TO_RAD);
@@ -103,8 +101,7 @@ void draw_minute_hand(struct tm *tm) {
     y_out = CLOCK_CENTER.y + MINUTE_HAND_LENGTH * sinf(alpha * DEG_TO_RAD);
     Vector2 out = {x_out, y_out};
 
-
-    DrawLineEx(CLOCK_CENTER, out, LINE_THICNESS, create_color(0, 0, 255, 255));
+    DrawLineEx(CLOCK_CENTER, out, LINE_THICNESS, create_color(0, 0, 0, 255));
 }
 
 void draw_seconds_hand(struct tm *tm) {
@@ -116,7 +113,7 @@ void draw_seconds_hand(struct tm *tm) {
     y_out = CLOCK_CENTER.y + SECONDS_HAND_LENGTH * sinf(alpha * DEG_TO_RAD);
     Vector2 out = {x_out, y_out};
 
-    DrawLineEx(CLOCK_CENTER, out, LINE_THICNESS, create_color(255, 0, 0, 255));
+    DrawLineEx(CLOCK_CENTER, out, 2, create_color(255, 0, 0, 255));
 }
 
 void debug_time(struct tm *tm) {
