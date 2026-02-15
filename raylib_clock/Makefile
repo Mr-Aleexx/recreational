@@ -12,6 +12,9 @@ run: clock
 clock: 
 	$(CC) -o raylib_clock raylib_clock.c $(CFLAGS) $(LFLAGS)
 
+debug:
+	$(CC) -o raylib_clock raylib_clock.c $(CFLAGS) $(LFLAGS) $(DEBUG_FLAGS)
+
 clean: 
 	rm -rf raylib_clock
 
