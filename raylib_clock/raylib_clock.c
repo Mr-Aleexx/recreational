@@ -12,9 +12,9 @@ const int CLOCK_RADIUS = HEIGHT * 0.45;
 
 const Vector2 CLOCK_CENTER = {(float) WIDTH / 2, (float) HEIGHT / 2};
 
-const float HOUR_HAND_LENGTH    = 0.5 * CLOCK_RADIUS;
-const float MINUTE_HAND_LENGTH  = 0.6 * CLOCK_RADIUS;
-const float SECONDS_HAND_LENGTH = 0.8 * CLOCK_RADIUS;
+const float HOUR_HAND_LENGTH    = 0.35 * CLOCK_RADIUS;
+const float MINUTE_HAND_LENGTH  = 0.6  * CLOCK_RADIUS;
+const float SECONDS_HAND_LENGTH = 0.8  * CLOCK_RADIUS;
 
 // Angle progressions since it's used everywhere
 const float HOUR_AP   = 360.0/12.0;
