@@ -5,20 +5,19 @@
 
 #define FPS 60
 
-#define MAX_BALL 3
+#define MAX_BALL 3000
 #define BALL_DEFAULT_RADIUS 20
-#define BOUNCING_COEFFICIENT -0.95f
 
-#define WIDTH  1920.0f
-#define HEIGHT 1080.0f
-
-#define GRAVITY 0.8f
-
+#define WIDTH  1200.0f
+#define HEIGHT 900.0f
 
 bool use_gravity = true;
 bool pause = 0;
 bool rand_pos = true;
 bool default_ball_radius = true;
+
+float bouncing_coefficient = 0.95f;
+float gravity = 0.8f;
 
 typedef struct {
     Vector2 ball_position;
@@ -37,7 +36,7 @@ void init_ball(Ball* b, Vector2 pos, Vector2 speed, int radius, Color color ) {
 void handle_ball_gravity(Ball* b) {
     b->ball_position.x += b->ball_speed.x;
     b->ball_position.y += b->ball_speed.y;
-    if (use_gravity) b->ball_speed.y += GRAVITY;
+    if (use_gravity) b->ball_speed.y += gravity;
 
     if (b->ball_position.x >= (WIDTH - b->ball_radius)) {
         b->ball_position.x = WIDTH - b->ball_radius;   
@@ -49,14 +48,37 @@ void handle_ball_gravity(Ball* b) {
 
     if (b->ball_position.y >= (HEIGHT - b->ball_radius)) {
         b->ball_position.y = HEIGHT - b->ball_radius; 
-        b->ball_speed.y *= BOUNCING_COEFFICIENT;
-    } }
+        b->ball_speed.y *= -bouncing_coefficient;
+    } else if (b->ball_position.y <= b->ball_radius) {
+        b->ball_position.y = b->ball_radius; 
+        b->ball_speed.y *= -bouncing_coefficient;
+    }
+
+}
 
 void print_ball_specs(Ball *b) {
     printf("Pos : %f:%f\nSpeed : %f:%f\nRadius : %d\n\n", 
             b->ball_position.x, b->ball_position.y,
             b->ball_speed.x   , b->ball_speed.y,
             b->ball_radius);
+}
+
+
+void DrawSpecs(int framesCounter) {
+
+            DrawText("PRESS SPACE to PAUSE BALL MOVEMENT", 10, GetScreenHeight() - 30, 10, LIGHTGRAY);
+
+            if (use_gravity) DrawText("gravity: ON (Press G to disable) current gravity : ", 10, GetScreenHeight() - 40, 10, DARKGREEN);
+
+            else DrawText("gravity: OFF (Press G to enable)", 10, GetScreenHeight() - 40, 10, RED);
+
+            DrawText(TextFormat("Current gravity : %f", gravity), 10, HEIGHT - 50, 10, GREEN);
+
+
+            DrawText(TextFormat("Bouncing coefficient : %.2f", bouncing_coefficient), 10, GetScreenHeight() - 60, 10, DARKGREEN);
+            if (pause && ((framesCounter/30)%2)) DrawText("PAUSED", (WIDTH  / 2) - 20, (HEIGHT / 2) - 20, 30, GRAY);
+
+            DrawFPS(10, 10);
 }
 
 int main(void)
@@ -109,6 +131,12 @@ int main(void)
     {
         if (IsKeyPressed(KEY_G)) use_gravity = !use_gravity;
         if (IsKeyPressed(KEY_SPACE)) pause = !pause;
+        
+        if (IsKeyPressed(KEY_DOWN) && gravity > 0.1) gravity -= 0.05;
+        if (IsKeyPressed(KEY_UP) ) gravity += 0.05;
+
+        if (IsKeyPressed(KEY_LEFT)   && bouncing_coefficient > 0.1) bouncing_coefficient -= 0.05;
+        if (IsKeyPressed(KEY_RIGHT)  && bouncing_coefficient < 1) bouncing_coefficient += 0.05;
 
         if (!pause)
         {
@@ -135,15 +163,7 @@ int main(void)
                 }
             }
 
-            DrawText("PRESS SPACE to PAUSE BALL MOVEMENT", 10, GetScreenHeight() - 25, 20, LIGHTGRAY);
-
-            if (use_gravity) DrawText("GRAVITY: ON (Press G to disable)", 10, GetScreenHeight() - 50, 20, DARKGREEN);
-            else DrawText("GRAVITY: OFF (Press G to enable)", 10, GetScreenHeight() - 50, 20, RED);
-
-            if (pause && ((framesCounter/30)%2)) DrawText("PAUSED", 350, 200, 30, GRAY);
-
-            DrawFPS(10, 10);
-
+        DrawSpecs(framesCounter);
         EndDrawing();
     }
 
