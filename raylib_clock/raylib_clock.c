@@ -17,8 +17,8 @@ const float MINUTE_HAND_LENGTH  = 0.6  * CLOCK_RADIUS;
 const float SECONDS_HAND_LENGTH = 0.8  * CLOCK_RADIUS;
 
 // Angle progressions since it's used everywhere
-const float HOUR_AP   = 360.0/12.0;
-const float MINSEC_AP = 360.0/60.0;
+const float HOUR_AP   = 360.0/12.0; //12 different hours possible
+const float MINSEC_AP = 360.0/60.0; //60 different minutes possible
 
 int clamp(int v) {
     if (v < 0) return 0;
@@ -133,9 +133,9 @@ int main(void)
     Color background  = create_color(0, 0, 0, 255);
     Color clock_color = create_color(255, 255 ,255 , 255);
 
-    time_t current_time = time(NULL);
-    char* current_time_str = ctime(&current_time);
-    struct tm *tm_struct = localtime(&current_time);
+    time_t current_time     = time(NULL);
+    char*  current_time_str = ctime(&current_time);
+    struct tm *tm_struct    = localtime(&current_time);
 
     InitWindow(WIDTH, HEIGHT, "RayLib Basic clock");
 
