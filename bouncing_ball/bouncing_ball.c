@@ -5,11 +5,13 @@
 
 #define FPS 60
 
-#define MAX_BALL 3000
+#define MAX_BALL 30000
 #define BALL_DEFAULT_RADIUS 20
 
 #define WIDTH  1200.0f
 #define HEIGHT 900.0f
+
+#define TEXTURE_COUNT 10
 
 bool use_gravity = true;
 bool pause = 0;
@@ -66,16 +68,37 @@ void print_ball_specs(Ball *b) {
 
 void DrawSpecs(int framesCounter) {
 
-            DrawText("PRESS SPACE to PAUSE BALL MOVEMENT", 10, GetScreenHeight() - 30, 10, LIGHTGRAY);
+            DrawText("PRESS SPACE to PAUSE BALL MOVEMENT", 
+                    10, 
+                    GetScreenHeight() - 30, 
+                    10, 
+                    LIGHTGRAY);
 
-            if (use_gravity) DrawText("gravity: ON (Press G to disable) current gravity : ", 10, GetScreenHeight() - 40, 10, DARKGREEN);
+            if (use_gravity) DrawText("gravity: ON (Press G to disable) current gravity : ", 
+                    10, 
+                    GetScreenHeight() - 40, 
+                    10, 
+                    DARKGREEN);
 
-            else DrawText("gravity: OFF (Press G to enable)", 10, GetScreenHeight() - 40, 10, RED);
+            else DrawText("gravity: OFF (Press G to enable)", 
+                    10, 
+                    GetScreenHeight() - 40, 
+                    10, 
+                    RED);
 
-            DrawText(TextFormat("Current gravity : %f", gravity), 10, HEIGHT - 50, 10, GREEN);
+            DrawText(TextFormat("Current gravity : %f", gravity), 
+                    10, 
+                    HEIGHT - 50, 
+                    10, 
+                    GREEN);
 
 
-            DrawText(TextFormat("Bouncing coefficient : %.2f", bouncing_coefficient), 10, GetScreenHeight() - 60, 10, DARKGREEN);
+            DrawText(TextFormat("Bouncing coefficient : %.2f", bouncing_coefficient), 
+                    10,
+                    GetScreenHeight() - 60, 
+                    10, 
+                    DARKGREEN);
+
             if (pause && ((framesCounter/30)%2)) DrawText("PAUSED", (WIDTH  / 2) - 20, (HEIGHT / 2) - 20, 30, GRAY);
 
             DrawFPS(10, 10);
@@ -90,6 +113,9 @@ int main(void)
 
 
     int texSize = BALL_DEFAULT_RADIUS * 2;
+
+    RenderTexture textures[TEXTURE_COUNT];
+
     RenderTexture ballTexture = LoadRenderTexture(texSize, texSize);
     BeginTextureMode(ballTexture);
         DrawCircle(BALL_DEFAULT_RADIUS, BALL_DEFAULT_RADIUS, (float)BALL_DEFAULT_RADIUS, WHITE);
@@ -168,6 +194,7 @@ int main(void)
     }
 
     free(balls);
+    UnloadRenderTexture(ballTexture);
 
     CloseWindow();
 
