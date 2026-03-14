@@ -5,8 +5,8 @@
 
 #define FPS 60
 
-#define MAX_BALL 30000
-#define BALL_DEFAULT_RADIUS 20
+#define MAX_BALLS 30000
+#define BALL_DEFAULT_RADIUS 10
 
 #define WIDTH  1200.0f
 #define HEIGHT 900.0f
@@ -16,60 +16,82 @@
 bool use_gravity = true;
 bool pause = 0;
 bool rand_pos = true;
-bool default_ball_radius = true;
+bool default_radius = true;
+
+int ball_cur_number = 100;
+int ball_increment  = MAX_BALLS / 20;
 
 float bouncing_coefficient = 0.95f;
 float gravity = 0.8f;
 
 typedef struct {
-    Vector2 ball_position;
-    Vector2 ball_speed;
-    int ball_radius;
-    Color ball_color;
+    Vector2 position;
+    Vector2 speed;
+    int radius;
+    Color color;
 } Ball;
 
-void init_ball(Ball* b, Vector2 pos, Vector2 speed, int radius, Color color ) {
-    b->ball_position = pos;
-    b->ball_speed    = speed;
-    b->ball_radius   = radius;
-    b->ball_color    = color;
+
+// initiate a ball with random pos, speed, color and radius if default radius is disabeled
+// (disabeling default radius might cause lag)
+void init_ball(Ball* b) {
+    Vector2 pos;
+    int radius;
+
+    if (rand_pos)
+        pos = (Vector2){GetRandomValue(20, WIDTH-20), GetRandomValue(20, HEIGHT-20)};
+    else
+        pos = (Vector2){WIDTH/2, HEIGHT/2};
+
+    Vector2 speed = {GetRandomValue(-5,5), GetRandomValue(-5,5)};
+
+    if (default_radius)
+        radius = BALL_DEFAULT_RADIUS;
+    else
+        radius = GetRandomValue(5,20);
+
+    Color color = {GetRandomValue(0,255), GetRandomValue(0,255), GetRandomValue(0,255), 255};
+
+    b->position = pos;
+    b->speed    = speed;
+    b->radius   = radius;
+    b->color    = color;
 }
 
 void handle_ball_gravity(Ball* b) {
-    b->ball_position.x += b->ball_speed.x;
-    b->ball_position.y += b->ball_speed.y;
-    if (use_gravity) b->ball_speed.y += gravity;
+    b->position.x += b->speed.x;
+    b->position.y += b->speed.y;
+    if (use_gravity) b->speed.y += gravity;
 
-    if (b->ball_position.x >= (WIDTH - b->ball_radius)) {
-        b->ball_position.x = WIDTH - b->ball_radius;   
-        b->ball_speed.x *= -1.0f;
-    } else if (b->ball_position.x <= b->ball_radius) {
-        b->ball_position.x = b->ball_radius;            
-        b->ball_speed.x *= -1.0f;
+    if (b->position.x >= (WIDTH - b->radius)) {
+        b->position.x = WIDTH - b->radius;   
+        b->speed.x *= -1.0f;
+    } else if (b->position.x <= b->radius) {
+        b->position.x = b->radius;            
+        b->speed.x *= -1.0f;
     }
 
-    if (b->ball_position.y >= (HEIGHT - b->ball_radius)) {
-        b->ball_position.y = HEIGHT - b->ball_radius; 
-        b->ball_speed.y *= -bouncing_coefficient;
-    } else if (b->ball_position.y <= b->ball_radius) {
-        b->ball_position.y = b->ball_radius; 
-        b->ball_speed.y *= -bouncing_coefficient;
+    if (b->position.y >= (HEIGHT - b->radius)) {
+        b->position.y = HEIGHT - b->radius; 
+        b->speed.y *= -bouncing_coefficient;
+    } else if (b->position.y <= b->radius) {
+        b->position.y = b->radius; 
+        b->speed.y *= -bouncing_coefficient;
     }
 
 }
 
 void print_ball_specs(Ball *b) {
     printf("Pos : %f:%f\nSpeed : %f:%f\nRadius : %d\n\n", 
-            b->ball_position.x, b->ball_position.y,
-            b->ball_speed.x   , b->ball_speed.y,
-            b->ball_radius);
+            b->position.x, b->position.y,
+            b->speed.x   , b->speed.y,
+            b->radius);
 }
 
 
-void DrawSpecs(int framesCounter) {
+void draw_specs() {
 
-            DrawText("PRESS SPACE to PAUSE BALL MOVEMENT", 
-                    10, 
+            DrawText("PRESS SPACE to PAUSE BALL MOVEMENT", 10, 
                     GetScreenHeight() - 30, 
                     10, 
                     LIGHTGRAY);
@@ -99,8 +121,12 @@ void DrawSpecs(int framesCounter) {
                     10, 
                     DARKGREEN);
 
-            if (pause && ((framesCounter/30)%2)) DrawText("PAUSED", (WIDTH  / 2) - 20, (HEIGHT / 2) - 20, 30, GRAY);
 
+            DrawText(TextFormat("Number of balls: %d", ball_cur_number), 
+                    10,
+                    GetScreenHeight() - 80, 
+                    10, 
+                    DARKGREEN);
             DrawFPS(10, 10);
 }
 
@@ -109,12 +135,11 @@ int main(void)
 
     SetTraceLogLevel(7);
     SetConfigFlags(FLAG_MSAA_4X_HINT);
-    InitWindow(WIDTH, HEIGHT, "raylib [shapes] example - bouncing ball");
+    InitWindow(WIDTH, HEIGHT, "Bouncing Balls");
 
 
     int texSize = BALL_DEFAULT_RADIUS * 2;
 
-    RenderTexture textures[TEXTURE_COUNT];
 
     RenderTexture ballTexture = LoadRenderTexture(texSize, texSize);
     BeginTextureMode(ballTexture);
@@ -123,31 +148,13 @@ int main(void)
     EndTextureMode();
 
 
-    Ball* balls = malloc(MAX_BALL*sizeof(Ball));
+    Ball* balls = (Ball *)calloc(MAX_BALLS,sizeof(Ball));
 
     int framesCounter = 0;
 
-    for(int i = 0 ; i < MAX_BALL ; i++) {
-    
-        Vector2 pos;
-        int radius;
 
-        if (rand_pos) 
-            pos = (Vector2){GetRandomValue(20, WIDTH  - 20), GetRandomValue(20, HEIGHT - 20)};
-        else
-            pos = (Vector2){WIDTH/2, HEIGHT/2};
-
-        Vector2 speed = {GetRandomValue(-5, 5), GetRandomValue(-5, 5) };
-
-        if (default_ball_radius)
-            radius = BALL_DEFAULT_RADIUS;
-        else
-            radius    = GetRandomValue(5, 20);
-
-        Color color   = { GetRandomValue(0, 255), GetRandomValue(0, 255), GetRandomValue(0, 255), 255 };
-
-        init_ball(&balls[i],pos, speed, radius,color);
-
+    for (int i = 0; i < ball_cur_number; i++) {
+        init_ball(&balls[i]);
     }
 
 
@@ -155,6 +162,14 @@ int main(void)
 
     while (!WindowShouldClose())    
     {
+        if (!pause)
+        {
+            for(int i = 0 ; i < ball_cur_number ; i++) {
+                handle_ball_gravity(&balls[i]);
+            }
+        }
+        else framesCounter++;
+
         if (IsKeyPressed(KEY_G)) use_gravity = !use_gravity;
         if (IsKeyPressed(KEY_SPACE)) pause = !pause;
         
@@ -163,39 +178,44 @@ int main(void)
 
         if (IsKeyPressed(KEY_LEFT)   && bouncing_coefficient > 0.1) bouncing_coefficient -= 0.05;
         if (IsKeyPressed(KEY_RIGHT)  && bouncing_coefficient < 1) bouncing_coefficient += 0.05;
+        if (IsKeyPressed(KEY_Z) && ball_cur_number - ball_increment > 0) ball_cur_number-=ball_increment;
+        if (IsKeyPressed(KEY_X) && ball_cur_number + ball_increment  < MAX_BALLS) ball_cur_number+=ball_increment;
+        if (IsKeyPressed(KEY_X) && ball_cur_number + ball_increment < MAX_BALLS) {
+            int old = ball_cur_number;
+            ball_cur_number += ball_increment;
 
-        if (!pause)
-        {
-            for(int i = 0 ; i < MAX_BALL ; i++) {
-                handle_ball_gravity(&balls[i]);
+            for (int i = old; i < ball_cur_number; i++) {
+                init_ball(&balls[i]);
             }
         }
-        else framesCounter++;
 
         BeginDrawing();
 
             ClearBackground(RAYWHITE);
-            if (default_ball_radius) {
-                for (int i = 0 ; i < MAX_BALL ; i++) {
+            if (default_radius) {
+                for (int i = 0 ; i < ball_cur_number ; i++) {
                     DrawTexture(ballTexture.texture,
-                                (int)(balls[i].ball_position.x - ballTexture.texture.width / 2.0f),
-                                (int)(balls[i].ball_position.y - ballTexture.texture.height / 2.0f),
-                                balls[i].ball_color);
+                                (int)(balls[i].position.x - ballTexture.texture.width / 2.0f),
+                                (int)(balls[i].position.y - ballTexture.texture.height / 2.0f),
+                                balls[i].color);
                 }
             }
             else {
-                for(int i = 0 ; i < MAX_BALL ; i++) {
-                    DrawCircleV(balls[i].ball_position, balls[i].ball_radius, balls[i].ball_color);
+                for(int i = 0 ; i < ball_cur_number ; i++) {
+                    DrawCircleV(balls[i].position, balls[i].radius, balls[i].color);
                 }
             }
 
-        DrawSpecs(framesCounter);
+        draw_specs();
+
+        if (pause && ((framesCounter/30)%2)) DrawText("PAUSED", (WIDTH  / 2) - 20, (HEIGHT / 2) - 20, 30, GRAY);
+
+
         EndDrawing();
     }
 
     free(balls);
     UnloadRenderTexture(ballTexture);
-
     CloseWindow();
 
     return 0;
