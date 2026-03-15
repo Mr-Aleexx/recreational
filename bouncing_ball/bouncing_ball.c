@@ -57,18 +57,18 @@ void handle_ball_gravity(Ball* b) {
     if (use_gravity) b->speed.y += gravity;
 
     if (b->position.x >= (WIDTH - b->radius)) {
-        b->position.x = WIDTH - b->radius;   
+        b->position.x = WIDTH - b->radius + 1;
         b->speed.x *= -1.0f;
     } else if (b->position.x <= b->radius) {
-        b->position.x = b->radius;            
+        b->position.x = b->radius + 1;            
         b->speed.x *= -1.0f;
     }
 
     if (b->position.y >= (HEIGHT - b->radius)) {
-        b->position.y = HEIGHT - b->radius; 
+        b->position.y = HEIGHT - b->radius + 1; 
         b->speed.y *= -bouncing_coefficient;
     } else if (b->position.y <= b->radius) {
-        b->position.y = b->radius; 
+        b->position.y = b->radius + 1; 
         b->speed.y *= -bouncing_coefficient;
     }
 
@@ -83,7 +83,7 @@ void print_ball_specs(Ball *b) {
 
 
 Vector2 generate_rand_pos() {
-    return (Vector2){GetRandomValue(0, GetScreenWidth()), GetRandomValue(0,GetScreenHeight())};
+    return (Vector2){GetRandomValue(0, GetScreenWidth()), GetRandomValue(10,GetScreenHeight())};
 }
 
 void draw_specs() {
@@ -192,7 +192,7 @@ int main(void)
             }
         }
 
-        if (IsKeyPressed(KEY_T) && ball_cur_number < MAX_BALLS) {
+        if (IsMouseButtonDown(MOUSE_LEFT_BUTTON) && ball_cur_number < MAX_BALLS) {
 
             Vector2 ball_mouse_placement = {GetMouseX(), GetMouseY()};
             int old = ball_cur_number;
