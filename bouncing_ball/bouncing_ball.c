@@ -5,7 +5,7 @@
 
 #define FPS 60
 
-#define MAX_BALLS 30000
+#define MAX_BALLS 300000
 #define BALL_DEFAULT_RADIUS 10
 
 #define WIDTH  1200.0f
@@ -34,15 +34,8 @@ typedef struct {
 
 // initiate a ball with random pos, speed, color and radius if default radius is disabeled
 // (disabeling default radius might cause lag)
-void init_ball(Ball* b) {
-    Vector2 pos;
+void init_ball(Ball* b, Vector2* pos) {
     int radius;
-
-    if (rand_pos)
-        pos = (Vector2){GetRandomValue(20, WIDTH-20), GetRandomValue(20, HEIGHT-20)};
-    else
-        pos = (Vector2){WIDTH/2, HEIGHT/2};
-
     Vector2 speed = {GetRandomValue(-5,5), GetRandomValue(-5,5)};
 
     if (default_radius)
@@ -52,7 +45,7 @@ void init_ball(Ball* b) {
 
     Color color = {GetRandomValue(0,255), GetRandomValue(0,255), GetRandomValue(0,255), 255};
 
-    b->position = pos;
+    b->position = *pos;
     b->speed    = speed;
     b->radius   = radius;
     b->color    = color;
@@ -89,45 +82,49 @@ void print_ball_specs(Ball *b) {
 }
 
 
+Vector2 generate_rand_pos() {
+    return (Vector2){GetRandomValue(0, GetScreenWidth()), GetRandomValue(0,GetScreenHeight())};
+}
+
 void draw_specs() {
 
-            DrawText("PRESS SPACE to PAUSE BALL MOVEMENT", 10, 
-                    GetScreenHeight() - 30, 
-                    10, 
-                    LIGHTGRAY);
+    DrawText("PRESS SPACE to PAUSE BALL MOVEMENT", 10, 
+            GetScreenHeight() - 30, 
+            10, 
+            LIGHTGRAY);
 
-            if (use_gravity) DrawText("gravity: ON (Press G to disable) current gravity : ", 
-                    10, 
-                    GetScreenHeight() - 40, 
-                    10, 
-                    DARKGREEN);
+    if (use_gravity) DrawText("gravity: ON (Press G to disable) current gravity : ", 
+            10, 
+            GetScreenHeight() - 40, 
+            10, 
+            DARKGREEN);
 
-            else DrawText("gravity: OFF (Press G to enable)", 
-                    10, 
-                    GetScreenHeight() - 40, 
-                    10, 
-                    RED);
+    else DrawText("gravity: OFF (Press G to enable)", 
+            10, 
+            GetScreenHeight() - 40, 
+            10, 
+            RED);
 
-            DrawText(TextFormat("Current gravity : %f", gravity), 
-                    10, 
-                    HEIGHT - 50, 
-                    10, 
-                    GREEN);
-
-
-            DrawText(TextFormat("Bouncing coefficient : %.2f", bouncing_coefficient), 
-                    10,
-                    GetScreenHeight() - 60, 
-                    10, 
-                    DARKGREEN);
+    DrawText(TextFormat("Current gravity : %f", gravity), 
+            10, 
+            HEIGHT - 50, 
+            10, 
+            GREEN);
 
 
-            DrawText(TextFormat("Number of balls: %d", ball_cur_number), 
-                    10,
-                    GetScreenHeight() - 80, 
-                    10, 
-                    DARKGREEN);
-            DrawFPS(10, 10);
+    DrawText(TextFormat("Bouncing coefficient : %.2f", bouncing_coefficient), 
+            10,
+            GetScreenHeight() - 60, 
+            10, 
+            DARKGREEN);
+
+
+    DrawText(TextFormat("Number of balls: %d", ball_cur_number), 
+            10,
+            GetScreenHeight() - 80, 
+            10, 
+            DARKGREEN);
+    DrawFPS(10, 10);
 }
 
 int main(void)
@@ -137,14 +134,12 @@ int main(void)
     SetConfigFlags(FLAG_MSAA_4X_HINT);
     InitWindow(WIDTH, HEIGHT, "Bouncing Balls");
 
-
     int texSize = BALL_DEFAULT_RADIUS * 2;
-
 
     RenderTexture ballTexture = LoadRenderTexture(texSize, texSize);
     BeginTextureMode(ballTexture);
         DrawCircle(BALL_DEFAULT_RADIUS, BALL_DEFAULT_RADIUS, (float)BALL_DEFAULT_RADIUS, WHITE);
-        DrawCircleLines(BALL_DEFAULT_RADIUS, BALL_DEFAULT_RADIUS, (float)BALL_DEFAULT_RADIUS, BLACK);
+        //DrawCircleLines(BALL_DEFAULT_RADIUS, BALL_DEFAULT_RADIUS, (float)BALL_DEFAULT_RADIUS, BLACK);
     EndTextureMode();
 
 
@@ -154,7 +149,8 @@ int main(void)
 
 
     for (int i = 0; i < ball_cur_number; i++) {
-        init_ball(&balls[i]);
+        Vector2 pos = generate_rand_pos();
+        init_ball(&balls[i], &pos);
     }
 
 
@@ -178,14 +174,33 @@ int main(void)
 
         if (IsKeyPressed(KEY_LEFT)   && bouncing_coefficient > 0.1) bouncing_coefficient -= 0.05;
         if (IsKeyPressed(KEY_RIGHT)  && bouncing_coefficient < 1) bouncing_coefficient += 0.05;
-        if (IsKeyPressed(KEY_Z) && ball_cur_number - ball_increment > 0) ball_cur_number-=ball_increment;
-        if (IsKeyPressed(KEY_X) && ball_cur_number + ball_increment  < MAX_BALLS) ball_cur_number+=ball_increment;
-        if (IsKeyPressed(KEY_X) && ball_cur_number + ball_increment < MAX_BALLS) {
+
+
+        if (IsKeyPressed(KEY_Z))  {
+            ball_cur_number-=ball_increment;
+            if (ball_cur_number < 0) ball_cur_number = 0;
+        }
+        if (IsKeyPressed(KEY_X)) {
+
             int old = ball_cur_number;
             ball_cur_number += ball_increment;
+            if (ball_cur_number > MAX_BALLS) ball_cur_number = MAX_BALLS;
 
             for (int i = old; i < ball_cur_number; i++) {
-                init_ball(&balls[i]);
+                Vector2 pos = generate_rand_pos();
+                init_ball(&balls[i], &pos);
+            }
+        }
+
+        if (IsKeyPressed(KEY_T) && ball_cur_number < MAX_BALLS) {
+
+            Vector2 ball_mouse_placement = {GetMouseX(), GetMouseY()};
+            int old = ball_cur_number;
+            ball_cur_number += 1;
+            if (ball_cur_number > MAX_BALLS) ball_cur_number = MAX_BALLS;
+
+            for (int i = old; i < ball_cur_number; i++) {
+                init_ball(&balls[i], &ball_mouse_placement);
             }
         }
 
