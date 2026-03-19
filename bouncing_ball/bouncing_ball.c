@@ -5,11 +5,11 @@
 
 #define FPS 60
 
-#define MAX_BALLS 300000
+#define MAX_BALLS 1000
 #define BALL_DEFAULT_RADIUS 10
 
-#define WIDTH  1200.0f
-#define HEIGHT 900.0f
+#define WIDTH  1900.0f
+#define HEIGHT 1000.0f
 
 #define TEXTURE_COUNT 10
 
@@ -57,10 +57,10 @@ void handle_ball_gravity(Ball* b) {
     if (use_gravity) b->speed.y += gravity;
 
     if (b->position.x >= (WIDTH - b->radius)) {
-        b->position.x = WIDTH - b->radius + 1;
+        b->position.x = WIDTH - b->radius;
         b->speed.x *= -1.0f;
     } else if (b->position.x <= b->radius) {
-        b->position.x = b->radius + 1;            
+        b->position.x = b->radius;            
         b->speed.x *= -1.0f;
     }
 
@@ -196,13 +196,21 @@ int main(void)
 
             Vector2 ball_mouse_placement = {GetMouseX(), GetMouseY()};
             int old = ball_cur_number;
-            ball_cur_number += 1;
+            ball_cur_number += ball_increment;
             if (ball_cur_number > MAX_BALLS) ball_cur_number = MAX_BALLS;
 
             for (int i = old; i < ball_cur_number; i++) {
                 init_ball(&balls[i], &ball_mouse_placement);
             }
         }
+
+        if (IsKeyPressed(KEY_P)) {
+            for(int i = 0 ; i < ball_cur_number ; i++) {
+                balls[i].speed = (Vector2){GetRandomValue(-5, 5), GetRandomValue(-5,5)};
+            }
+        }
+
+        if (IsKeyPressed(KEY_R)) ball_cur_number = 0;
 
         BeginDrawing();
 
